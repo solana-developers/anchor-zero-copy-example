@@ -188,11 +188,12 @@ describe("zero-copy", () => {
     console.log(string_length, "Your transaction signature", tx);
   });
 
-  // Fill big account with data using copy from slice in the program
-  it("Send 912 long character 43 times to fill 39224Kb", async () => {
+  // Fill big account with data above heap size using copy_from_slice in the program
+  it("Send 912 long string 43 times to fill 39224Kb (-8Kb for account descriminator)", async () => {
     connection.getAccountInfo(pdaZeroCopy).then((accountInfo) => {
       console.log("Account size: ", accountInfo.data.length);
     });
+    // 1024 - 32 - 32 - 32 - 8 - 8 = 912
     const string_length = 912;
     for (let counter = 0; counter < 43; counter++) {
       try {

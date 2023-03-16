@@ -22,7 +22,7 @@ pub mod zero_copy {
         msg!(text_to_add_to_the_account);
 
         // Since the account is bigger that the heap space as soon as we access the whole account we will get a out of memory error        
-        // let string = &ctx.accounts.data_holder.load_mut()?.greet_string;
+        // let string = &ctx.accounts.data_holder.load_mut()?.long_string;
         // let complete_string = str::from_utf8(string).unwrap(); 
         // msg!("DataLength: {}", string.len());
         // msg!("CompleteString: {}", complete_string);
@@ -31,7 +31,7 @@ pub mod zero_copy {
         ctx.accounts
             .data_holder
             .load_mut()?
-            .greet_string[((index) as usize)..((index +912) as usize)]
+            .long_string[((index) as usize)..((index +912) as usize)]
             .copy_from_slice(string_to_set.as_bytes());
 
         Ok(())
@@ -77,15 +77,7 @@ pub struct SetData<'info> {
 #[repr(packed)]
 pub struct DataHolder {
     // 40952 = 40960 - 8 (account desciminator)
-    pub greet_string: [u8; 40952],
-}
-
-#[derive(Accounts)]
-pub struct SetDataNoZeroCopy<'info> {
-    #[account(mut)]
-    pub data_holder: Account<'info, DataHolderNoZeroCopy>,
-    #[account(mut)]
-    pub signer: Signer<'info>,
+    pub long_string: [u8; 40952],
 }
 
 #[derive(Accounts)]
@@ -100,6 +92,14 @@ pub struct IncreaseZeroCopy<'info> {
     pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct SetDataNoZeroCopy<'info> {
+    #[account(mut)]
+    pub data_holder: Account<'info, DataHolderNoZeroCopy>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
