@@ -11,14 +11,14 @@ Maybe you also need to install Anchor or Rust: https://www.anchor-lang.com/docs/
 ## Explanation of Solana Memory and Zero Copy 
 
 The heap and stack memory in the solana runtime are very limited. We have 4Kb to work with on the stack and 32Kb on the heap.
-The stack increased by 10Kb per loaded account.These limits are quickly reached when building a game. 
+The stack increased by 10Kb per loaded account. These limits are quickly reached when writing a program. 
 By default in Anchor all accounts being loaded will be on the stack. If you reach the stack limit you will an error similar to this: 
 
 ```js
 Stack offset of -30728 exceeded max offset of -4096 by 26632 bytes, please minimize large stack variables
 ```
 
-So prevent this to a certain degree you can Box your account. What this means is that the account will move to the head and there will only be saved a pointer on the Stack.
+To prevent this to a certain degree you can Box your account. What this means is that the account will move to the heap and there will only be a pointer saved on the Stack.
 This can be done like this: 
 
 ```js
@@ -28,9 +28,9 @@ pub struct Example {
 }
 ```
 
-If your account gets bigger it gets a bit more complicated. Solana does not allow Cross Program Invocations with account bigger than 10Kb.
+If your account gets bigger it gets a bit more complicated. Solana does not allow Cross Program Invocations with accounts bigger than 10Kb.
 Anchor does use a CPI to initialize all new accounts. So it calls the System Progamm internally to create a new account.
-You can allocate more memory like this: 
+You can allocate more memory to your account like this with an extra transaction: 
 
 ```js
 Program: 
@@ -62,10 +62,10 @@ Js:
 ```
 
 You can then call this multiple times adding 10240 in each transaction. 
-When loading an acocunt which is bigger than the 10240 bytes though you will get a out of memory exception.
+When loading an account which is bigger than the 10240 bytes though you will get an out of memory exception.
 
 If you need an even bigger account size you need to look into Zero Copy serialization. 
-You should only use zero copy for large accounts that can not be Borsh deserialised without hitting the heap or stack limits. 
+You should only use zero copy for large accounts that can not be Borsh/Anchor deserialised without hitting the heap or stack limits. 
 With zero copy deserialization, all bytes from the account's backing `RefCell<&mut [u8]>` are simply re-interpreted as a reference to
 the data structure. No allocations or copies necessary. This is how we can get around the stack and heap limitations.
 
@@ -77,7 +77,7 @@ For the account you want to serialize with zero copy you need to add this zero_c
 
 Then you can define the repr which definies how the data will be packed. By default repr[c] will be used, so the C serialization. 
 This will by default break options and enums in your structs because the C serialization is different from the Borsh serialization.
-You can also use  
+You can also use:  
 
 ```js
 #[repr(packed)]
@@ -114,9 +114,14 @@ Like this you can interact with the data of the account using copy_from_slice or
         Ok(())
     }
 
+    // This will initialize the PDA with the maximum possible size of 10 Kb
     #[derive(Accounts)]
     pub struct Initialize<'info> {
-        #[account(init, seeds = [b"data_holder_zero_copy_v0", signer.key().as_ref()], bump, payer=signer, space= 10 * 1024 as usize)]
+        #[account(init, seeds = [b"data_holder_zero_copy_v0", 
+        signer.key().as_ref()], 
+        bump, 
+        payer=signer, 
+        space= 10 * 1024 as usize)]
         pub data_holder: AccountLoader<'info, DataHolder>,
         #[account(mut)]
         pub signer: Signer<'info>,
