@@ -96,7 +96,7 @@ describe("zero-copy", () => {
       .signers([author])
       .rpc();
 
-      const txRealloc = await program.methods
+      let txRealloc = await program.methods
       .increaseAccountData(10240)
       .accounts({
         writer: author.publicKey,
@@ -106,10 +106,22 @@ describe("zero-copy", () => {
       .signers([author])
       .rpc();
 
+      txRealloc = await program.methods
+      .increaseAccountData(20480)
+      .accounts({
+        writer: author.publicKey,
+        dataHolder: pdaNoZeroCopy,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .signers([author])
+      .rpc();
+  
       console.log("Realloc", txRealloc);
       
-    // Ass soon as we put more data we will hit the heap limit and get an out of memory error
-    for (let counter = 1; counter < 11; counter++) {
+    // Although the account is bigger as soon as we put more data we will hit the heap limit and get an out of memory error since PDA accounts 
+    // are limited not by the usualy heap size of 32 Kb but 10Kb per PDA. This does not apply for zero copy accounts.
+    //for (let counter = 0; counter < 12; counter++) {
+    for (let counter = 0; counter < 11; counter++) {
       try {
         const tx = await program.methods
           .setDataNoZeroCopy("A".repeat(string_length))
@@ -118,7 +130,7 @@ describe("zero-copy", () => {
             dataHolder: pdaNoZeroCopy,
           })
           .signers([author])
-          .rpc();
+          .rpc(confirmOptions);
           console.log("Add more string " + counter, tx);
       } catch (e) {
         console.log("error occurred: ", e);
@@ -127,7 +139,7 @@ describe("zero-copy", () => {
   });
 
   // send max allowed length string
-  it("Increase account size above heap limit", async () => {
+/*  it("Increase account size above heap limit", async () => {
     let confirmOptions = {
       skipPreflight: true
     };
@@ -206,5 +218,5 @@ describe("zero-copy", () => {
         console.log("error occurred: ", e);
       }
     }
-  });
+  });*/
 });

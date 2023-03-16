@@ -48,7 +48,7 @@ pub mod zero_copy {
     pub fn set_data_no_zero_copy(ctx: Context<SetDataNoZeroCopy>, string_to_set: String) -> Result<()> {
         // This will work up to the limit of head space
         ctx.accounts.data_holder.greet_string.push_str(&string_to_set);
-        msg!(&ctx.accounts.data_holder.greet_string.len().to_string());
+        //msg!(&ctx.accounts.data_holder.greet_string.len().to_string());
         Ok(())
     }
 }
