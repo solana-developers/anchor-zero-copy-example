@@ -1,11 +1,14 @@
 # How to handle big accounts
 
+## How to run 
 To run the tests:
 1. Install Solana CLI: https://docs.solana.com/de/cli/install-solana-cli-tools
 2. Open Terminal: solana-test-validator
 3. In vs code run: anchor test --skip-local-validator
 
 Maybe you also need to install Anchor or Rust: https://www.anchor-lang.com/docs/installation
+
+## Explanation of Solana Memory and Zero Copy 
 
 The heap and stack memory in the solana runtime are very limited. We have 4Kb to work with on the stack and 32Kb on the heap.
 The stack increased by 10Kb per loaded account.These limits are quickly reached when building a game. 
