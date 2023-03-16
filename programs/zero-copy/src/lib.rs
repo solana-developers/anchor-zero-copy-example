@@ -55,12 +55,12 @@ pub mod zero_copy {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init, seeds = [b"data_holder_zero_copy_v0", author.key().as_ref()], bump, payer=author, space= 10 * 1024 as usize)]
+    #[account(init, seeds = [b"data_holder_zero_copy_v0", signer.key().as_ref()], bump, payer=signer, space= 10 * 1024 as usize)]
     pub data_holder: AccountLoader<'info, DataHolder>,
-    #[account(init, seeds = [b"data_holder_no_zero_copy_v0", author.key().as_ref()], bump, payer=author, space= 10 * 1024 as usize)]
+    #[account(init, seeds = [b"data_holder_no_zero_copy_v0", signer.key().as_ref()], bump, payer=signer, space= 10 * 1024 as usize)]
     pub data_holder_no_zero_copy: Account<'info, DataHolderNoZeroCopy>,
     #[account(mut)]
-    pub author: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
 }
@@ -70,7 +70,7 @@ pub struct SetData<'info> {
     #[account(mut)]
     pub data_holder: AccountLoader<'info, DataHolder>,
     #[account(mut)]
-    pub writer: Signer<'info>,
+    pub signer: Signer<'info>,
 }
 
 #[account(zero_copy)]
@@ -85,7 +85,7 @@ pub struct SetDataNoZeroCopy<'info> {
     #[account(mut)]
     pub data_holder: Account<'info, DataHolderNoZeroCopy>,
     #[account(mut)]
-    pub writer: Signer<'info>,
+    pub signer: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -94,10 +94,10 @@ pub struct IncreaseZeroCopy<'info> {
     #[account(mut, 
         realloc = len as usize, 
         realloc::zero = true, 
-        realloc::payer=writer)]
+        realloc::payer=signer)]
     pub data_holder: AccountLoader<'info, DataHolder>,
     #[account(mut)]
-    pub writer: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
 }
@@ -108,10 +108,10 @@ pub struct IncreaseAccoutSize<'info> {
     #[account(mut, 
         realloc = len as usize, 
         realloc::zero = true, 
-        realloc::payer=writer)]
+        realloc::payer=signer)]
     pub data_holder: Account<'info, DataHolderNoZeroCopy>,
     #[account(mut)]
-    pub writer: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
 }
@@ -124,13 +124,13 @@ pub struct DataHolderNoZeroCopy {
 #[derive(Accounts)]
 pub struct InitializeHitStackSize<'info> {
     #[account(init, 
-        seeds = [b"hit_stack_size", author.key().as_ref()], 
+        seeds = [b"hit_stack_size", signer.key().as_ref()], 
         bump, 
-        payer=author, 
+        payer=signer, 
         space= 10 * 1024 as usize)]
     pub data_holder: Account<'info, HitStackSize>,
     #[account(mut)]
-    pub author: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
 }

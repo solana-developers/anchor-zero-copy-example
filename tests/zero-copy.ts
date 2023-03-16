@@ -9,8 +9,9 @@ describe("zero-copy", () => {
 
   const program = anchor.workspace.ZeroCopy as Program<ZeroCopy>;
 
-  const author = anchor.web3.Keypair.generate();
-  console.log(new Date(), "User pubkey is", author.publicKey.toBase58());
+  const signer = anchor.web3.Keypair.generate();
+  console.log("Local signer is: ", signer.publicKey.toBase58());
+
   const connection = anchor.getProvider().connection;
 
   let confirmOptions = {
@@ -20,23 +21,23 @@ describe("zero-copy", () => {
   let [pdaHitStackSize] = findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("hit_stack_size"),
-      author.publicKey.toBuffer(),
+      signer.publicKey.toBuffer(),
     ],
     program.programId
   );
 
-  let [pdaZeroCopy, bump] = findProgramAddressSync(
+  let [pdaZeroCopy] = findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("data_holder_zero_copy_v0"),
-      author.publicKey.toBuffer(),
+      signer.publicKey.toBuffer(),
     ],
     program.programId
   );
 
-  let [pdaNoZeroCopy, bump2] = findProgramAddressSync(
+  let [pdaNoZeroCopy] = findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("data_holder_no_zero_copy_v0"),
-      author.publicKey.toBuffer(),
+      signer.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -44,7 +45,7 @@ describe("zero-copy", () => {
   before(async () => {
     console.log(new Date(), "requesting airdrop");
     const airdropTx = await connection.requestAirdrop(
-      author.publicKey,
+      signer.publicKey,
       5 * anchor.web3.LAMPORTS_PER_SOL
     );
     await connection.confirmTransaction(airdropTx);
@@ -54,12 +55,12 @@ describe("zero-copy", () => {
     const tx = await program.methods
       .initialize()
       .accounts({
-        author: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaZeroCopy,
         dataHolderNoZeroCopy: pdaNoZeroCopy,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([author])
+      .signers([signer])
       .rpc();
     console.log("Your transaction signature", tx);
   });
@@ -69,11 +70,11 @@ describe("zero-copy", () => {
       const tx = await program.methods
       .initializeHitStackSize()
       .accounts({
-        author: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaHitStackSize,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([author])
+      .signers([signer])
       .rpc(confirmOptions);
       console.log("Hit stack size signature", tx);
     } catch (e) {
@@ -85,51 +86,51 @@ describe("zero-copy", () => {
     // Max transaction size data size is 1232 Byte minus 32 bytes per account pubkey and function disciminator
     // signature 64 
     // Blockhash 32
-    // 1024 - 32 - 32- 32- 8
+    // 1024 - 32 - 32 - 32 - 8 = 920
     const string_length = 920;
     const tx = await program.methods
       .setDataNoZeroCopy("A".repeat(string_length))
       .accounts({
-        writer: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaNoZeroCopy,
       })
-      .signers([author])
+      .signers([signer])
       .rpc();
 
       let txRealloc = await program.methods
       .increaseAccountData(10240)
       .accounts({
-        writer: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaNoZeroCopy,
         systemProgram: anchor.web3.SystemProgram.programId
       })
-      .signers([author])
+      .signers([signer])
       .rpc();
 
       txRealloc = await program.methods
       .increaseAccountData(20480)
       .accounts({
-        writer: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaNoZeroCopy,
         systemProgram: anchor.web3.SystemProgram.programId
       })
-      .signers([author])
+      .signers([signer])
       .rpc();
   
       console.log("Realloc", txRealloc);
       
-    // Although the account is bigger as soon as we put more data we will hit the heap limit and get an out of memory error since PDA accounts 
+    // Although the account is big (20480Kb) as soon as we put more data we will get an out of memory error since PDA accounts 
     // are limited not by the usualy heap size of 32 Kb but 10Kb per PDA. This does not apply for zero copy accounts.
-    //for (let counter = 0; counter < 12; counter++) {
+    // for (let counter = 0; counter < 12; counter++) {
     for (let counter = 0; counter < 11; counter++) {
       try {
         const tx = await program.methods
           .setDataNoZeroCopy("A".repeat(string_length))
           .accounts({
-            writer: author.publicKey,
+            signer: signer.publicKey,
             dataHolder: pdaNoZeroCopy,
           })
-          .signers([author])
+          .signers([signer])
           .rpc(confirmOptions);
           console.log("Add more string " + counter, tx);
       } catch (e) {
@@ -138,8 +139,7 @@ describe("zero-copy", () => {
     }
   });
 
-  // send max allowed length string
-/*  it("Increase account size above heap limit", async () => {
+  it("Increase account size above heap limit", async () => {
     let confirmOptions = {
       skipPreflight: true
     };
@@ -149,41 +149,41 @@ describe("zero-copy", () => {
     let reallocTransaction = await program.methods
     .increaseAccountDataZeroCopy(20480)
     .accounts({
-      writer: author.publicKey,
+      signer: signer.publicKey,
       dataHolder: pdaZeroCopy,
       systemProgram: anchor.web3.SystemProgram.programId
     })
-    .signers([author])
+    .signers([signer])
     .rpc();
 
     reallocTransaction = await program.methods
     .increaseAccountDataZeroCopy(30720)
     .accounts({
-      writer: author.publicKey,
+      signer: signer.publicKey,
       dataHolder: pdaZeroCopy,
       systemProgram: anchor.web3.SystemProgram.programId
     })
-    .signers([author])
+    .signers([signer])
     .rpc();
 
     reallocTransaction = await program.methods
     .increaseAccountDataZeroCopy(40960)
     .accounts({
-      writer: author.publicKey,
+      signer: signer.publicKey,
       dataHolder: pdaZeroCopy,
       systemProgram: anchor.web3.SystemProgram.programId
     })
-    .signers([author])
+    .signers([signer])
     .rpc();
 
     const string_length = 912; // 920 - 8 byte for the BN
     const tx = await program.methods
       .setData("A".repeat(string_length), new anchor.BN.BN(0))
       .accounts({
-        writer: author.publicKey,
+        signer: signer.publicKey,
         dataHolder: pdaZeroCopy,
       })
-      .signers([author])
+      .signers([signer])
       .rpc(confirmOptions);
     console.log(string_length, "Your transaction signature", tx);
   });
@@ -199,10 +199,10 @@ describe("zero-copy", () => {
         const tx = await program.methods
           .setData("A".repeat(string_length), new anchor.BN.BN(string_length * counter))
           .accounts({
-            writer: author.publicKey,
+            signer: signer.publicKey,
             dataHolder: pdaZeroCopy,
           })
-          .signers([author])
+          .signers([signer])
           .rpc();
         console.log("Add more string " + counter, tx);
         connection.getAccountInfo(pdaZeroCopy).then((accountInfo) => {
@@ -218,5 +218,5 @@ describe("zero-copy", () => {
         console.log("error occurred: ", e);
       }
     }
-  });*/
+  });
 });
