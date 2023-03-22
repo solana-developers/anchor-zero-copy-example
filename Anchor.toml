@@ -8,8 +8,11 @@ zero_copy = "DsqmUY3txpP3RNLxjHUWEepFTHiZBK6BMqaucqJD1Jzh"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
 wallet = "/Users/jonasmac2/.config/solana/id.json"
+cluster = "http://127.0.0.1:8899"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+stacksize = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/stacksize.ts"
+withoutzerocopy = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/withoutzerocopy.ts"
+zerocopy = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/zerocopy.ts"

@@ -9,7 +9,11 @@ pub mod zero_copy {
 
     use super::*;
 
-    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize_no_zero_copy(_ctx: Context<InitializeNoZeroCopy>) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn initialize_zero_copy(_ctx: Context<InitializeZeroCopy>) -> Result<()> {
         Ok(())
     }
 
@@ -46,7 +50,7 @@ pub mod zero_copy {
     }
 
     pub fn set_data_no_zero_copy(ctx: Context<SetDataNoZeroCopy>, string_to_set: String) -> Result<()> {
-        // This will work up to the limit of head space
+        // This will work up to the limit of heap space
         ctx.accounts.data_holder.greet_string.push_str(&string_to_set);
         //msg!(&ctx.accounts.data_holder.greet_string.len().to_string());
         Ok(())
@@ -54,10 +58,28 @@ pub mod zero_copy {
 }
 
 #[derive(Accounts)]
-pub struct Initialize<'info> {
-    #[account(init, seeds = [b"data_holder_zero_copy_v0", signer.key().as_ref()], bump, payer=signer, space= 10 * 1024 as usize)]
+pub struct InitializeZeroCopy<'info> {
+    #[account(init, 
+        seeds = [b"data_holder_zero_copy_v0", 
+        signer.key().as_ref()], 
+        bump, 
+        payer=signer, 
+        space= 10 * 1024 as usize)]
     pub data_holder: AccountLoader<'info, DataHolder>,
-    #[account(init, seeds = [b"data_holder_no_zero_copy_v0", signer.key().as_ref()], bump, payer=signer, space= 10 * 1024 as usize)]
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct InitializeNoZeroCopy<'info> {
+    #[account(init,
+        seeds = [b"data_holder_no_zero_copy_v0", 
+        signer.key().as_ref()], 
+        bump, 
+        payer=signer, 
+        space= 10 * 1024 as usize)]
     pub data_holder_no_zero_copy: Account<'info, DataHolderNoZeroCopy>,
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -136,9 +158,10 @@ pub struct InitializeHitStackSize<'info> {
 }
 
 #[account]
-// 9 * 128 = 1152 bytes -> With the way anchor deserialized the account in the init functio this will already hit the stack limit
+// 9 * (128 + 1) = 1161 bytes -> With the way anchor deserialized the account in the init function this will already hit the stack limit
+// Error  will be: Stack offset of 4536 exceeded max offset of 4096 by 440 bytes
 pub struct HitStackSize {
-    board: [Option<BigStruct>; 9], 
+    board: [Option<BigStruct>; 9],
 }
 
 #[derive(
