@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-zero_copy = "DsqmUY3txpP3RNLxjHUWEepFTHiZBK6BMqaucqJD1Jzh"
+zero_copy = "E7GebMdwaGevhj7G9EZFhkrMz6gQKyTnTNbx8gWvf8KF"
 
 [registry]
 url = "https://api.apr.dev"

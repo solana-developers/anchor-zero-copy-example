@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::system_program;
 use std::str;
 
-declare_id!("DsqmUY3txpP3RNLxjHUWEepFTHiZBK6BMqaucqJD1Jzh");
+declare_id!("E7GebMdwaGevhj7G9EZFhkrMz6gQKyTnTNbx8gWvf8KF");
 
 #[program]
 pub mod zero_copy {
@@ -35,7 +35,7 @@ pub mod zero_copy {
         ctx.accounts
             .data_holder
             .load_mut()?
-            .long_string[((index) as usize)..((index +912) as usize)]
+            .long_string[((index) as usize)..((index + 912) as usize)]
             .copy_from_slice(string_to_set.as_bytes());
 
         Ok(())
@@ -96,7 +96,7 @@ pub struct SetData<'info> {
 }
 
 #[account(zero_copy)]
-#[repr(packed)]
+#[repr(C)]
 pub struct DataHolder {
     // 40952 = 40960 - 8 (account desciminator)
     pub long_string: [u8; 40952],
