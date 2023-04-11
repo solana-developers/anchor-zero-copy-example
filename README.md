@@ -160,9 +160,13 @@ Like this you can interact with the data of the account using copy_from_slice or
 }
 ```
 
+[Great Blog article about size Anchor differences](https://www.sec3.dev/blog/all-about-anchor-account-size)
+
 Here is a game anchor program that uses Zero Copy for a game grid: <br/> 
 [Anchor Program Game](https://github.com/Woody4618/SolPlay_Unity_SDK/blob/main/Assets/SolPlay/Examples/SolHunter/AnchorProgram/src/state/game.rs)
 And here another example saving items in a zero copy account: 
 [Anchor Program Items](https://github.com/coral-xyz/anchor/issues/651)
+
+
 
 

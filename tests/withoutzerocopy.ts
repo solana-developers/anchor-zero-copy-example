@@ -70,7 +70,7 @@ describe("without_zero_copy", () => {
     // Although the account is big (20480Kb) as soon as we put more data we will get an out of memory error since PDA accounts 
     // are limited not by the usualy heap size of 32 Kb but 10Kb per PDA. This does not apply for zero copy accounts.
     // for (let counter = 0; counter < 12; counter++) {
-      for (let counter = 0; counter < 14; counter++) {
+    for (let counter = 0; counter < 14; counter++) {
       try {
         const tx = await program.methods
           .setDataNoZeroCopy("A".repeat(string_length))

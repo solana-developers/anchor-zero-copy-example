@@ -150,7 +150,7 @@ pub struct InitializeHitStackSize<'info> {
         bump, 
         payer=signer, 
         space= 10 * 1024 as usize)]
-    pub data_holder: Account<'info, HitStackSize>,
+    pub data_holder: Box<Account<'info, HitStackSize>>,
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(address = system_program::ID)]
