@@ -11,6 +11,11 @@ To run the tests:
 
 Maybe you also need to install Anchor or Rust: https://www.anchor-lang.com/docs/installation
 
+Video walkthrough:
+<div class="video-block">
+<iframe width="320" height="200" src="https://www.youtube.com/embed/zs_yU0IuJxc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+</div>
+
 ## Explanation of Solana Memory and Zero Copy 
 
 The heap and stack memory in the Solana runtime are very limited. We have 4Kb to work with on the stack and 32Kb on the heap.
