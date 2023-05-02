@@ -11,7 +11,7 @@ To run the tests:
 
 Maybe you also need to install Anchor or Rust: https://www.anchor-lang.com/docs/installation
 
-[Video walkthrough] (https://www.youtube.com/embed/zs_yU0IuJxc)
+[Video walkthrough](https://www.youtube.com/embed/zs_yU0IuJxc)
 
 ## Explanation of Solana Memory and Zero Copy 
 
