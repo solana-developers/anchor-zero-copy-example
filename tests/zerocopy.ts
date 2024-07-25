@@ -1,24 +1,22 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { ZeroCopy } from "../target/types/zero_copy";
 
 describe("zero-copy", () => {
-
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.ZeroCopy as Program<ZeroCopy>;
 
   const signer = anchor.web3.Keypair.generate();
-  console.log("Local signer is: ", signer.publicKey.toBase58());
+  console.log("Local signer zero copy is: ", signer.publicKey.toBase58());
 
   const connection = anchor.getProvider().connection;
 
   let confirmOptions = {
-    skipPreflight: true
+    skipPreflight: true,
   };
 
-  let [pdaZeroCopy] = findProgramAddressSync(
+  let [pdaZeroCopy] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("data_holder_zero_copy_v0"),
       signer.publicKey.toBuffer(),
@@ -40,8 +38,6 @@ describe("zero-copy", () => {
       .initializeZeroCopy()
       .accounts({
         signer: signer.publicKey,
-        dataHolder: pdaZeroCopy,
-        systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([signer])
       .rpc();
@@ -50,57 +46,55 @@ describe("zero-copy", () => {
 
   // Fill big account with data above heap size using copy_from_slice in the program
   it("Send 912 long string 43 times to fill 39224Kb (-8Kb for account descriminator)", async () => {
-
     let confirmOptions = {
-      skipPreflight: true
+      skipPreflight: true,
     };
 
     // We need to increase the space in 10 * 1024 byte steps otherwise we will get an error
     // This will work up to 10Mb
     let reallocTransaction = await program.methods
-    .increaseAccountDataZeroCopy(20480)
-    .accounts({
-      signer: signer.publicKey,
-      dataHolder: pdaZeroCopy,
-      systemProgram: anchor.web3.SystemProgram.programId
-    })
-    .signers([signer])
-    .rpc();
+      .increaseAccountDataZeroCopy(20480)
+      .accounts({
+        dataHolder: pdaZeroCopy,
+        signer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc();
 
     reallocTransaction = await program.methods
-    .increaseAccountDataZeroCopy(30720)
-    .accounts({
-      signer: signer.publicKey,
-      dataHolder: pdaZeroCopy,
-      systemProgram: anchor.web3.SystemProgram.programId
-    })
-    .signers([signer])
-    .rpc();
+      .increaseAccountDataZeroCopy(30720)
+      .accounts({
+        dataHolder: pdaZeroCopy,
+        signer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc();
 
     reallocTransaction = await program.methods
-    .increaseAccountDataZeroCopy(40960)
-    .accounts({
-      signer: signer.publicKey,
-      dataHolder: pdaZeroCopy,
-      systemProgram: anchor.web3.SystemProgram.programId
-    })
-    .signers([signer])
-    .rpc();
+      .increaseAccountDataZeroCopy(40960)
+      .accounts({
+        dataHolder: pdaZeroCopy,
+        signer: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc();
 
     connection.getAccountInfo(pdaZeroCopy).then((accountInfo) => {
       console.log("Account size: ", accountInfo.data.length);
     });
-    
+
     // 1024 - 32 - 32 - 32 - 8 - 8 = 912
     const string_length = 912;
     for (let counter = 0; counter < 43; counter++) {
       try {
-
         const tx = await program.methods
-          .setData("A".repeat(string_length), new anchor.BN.BN(string_length * counter))
+          .setData(
+            "A".repeat(string_length),
+            new anchor.BN.BN(string_length * counter)
+          )
           .accounts({
-            signer: signer.publicKey,
             dataHolder: pdaZeroCopy,
+            signer: signer.publicKey,
           })
           .signers([signer])
           .rpc();
@@ -112,7 +106,7 @@ describe("zero-copy", () => {
           for (let bytes of accountInfo.data) {
             if (bytes != 0) {
               counter++;
-            }          
+            }
           }
           console.log("Non zero bytes in buffer: " + counter);
         });

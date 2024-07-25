@@ -1,24 +1,25 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { ZeroCopy } from "../target/types/zero_copy";
 
 describe("without_zero_copy", () => {
-
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.ZeroCopy as Program<ZeroCopy>;
 
   const signer = anchor.web3.Keypair.generate();
-  console.log("Local signer is: ", signer.publicKey.toBase58());
+  console.log(
+    "Local signer without zero copy is: ",
+    signer.publicKey.toBase58()
+  );
 
   const connection = anchor.getProvider().connection;
 
   let confirmOptions = {
-    skipPreflight: true
+    skipPreflight: true,
   };
 
-  let [pdaNoZeroCopy] = findProgramAddressSync(
+  let [pdaNoZeroCopy] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("data_holder_no_zero_copy_v0"),
       signer.publicKey.toBuffer(),
@@ -40,8 +41,6 @@ describe("without_zero_copy", () => {
       .initializeNoZeroCopy()
       .accounts({
         signer: signer.publicKey,
-        dataHolderNoZeroCopy: pdaNoZeroCopy,
-        systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([signer])
       .rpc();
@@ -52,7 +51,7 @@ describe("without_zero_copy", () => {
     const string_length = 920;
 
     // Max transaction size data size is 1232 Byte minus 32 bytes per account pubkey and instruction disciminator
-    // signature 64 
+    // signature 64
     // Blockhash 32
     // 1024 - 32 - 32 - 32 - 8 = 920
     const tx = await program.methods
@@ -60,17 +59,16 @@ describe("without_zero_copy", () => {
       .accounts({
         signer: signer.publicKey,
         dataHolder: pdaNoZeroCopy,
-        systemProgram: anchor.web3.SystemProgram.programId
       })
       .signers([signer])
       .rpc();
-  
-      console.log("Realloc", tx);
-      
-    // Although the account is big (20480Kb) as soon as we put more data we will get an out of memory error since PDA accounts 
+
+    console.log("Realloc", tx);
+
+    // Although the account is big (20480Kb) as soon as we put more data we will get an out of memory error since PDA accounts
     // are limited not by the usualy heap size of 32 Kb but 10Kb per PDA. This does not apply for zero copy accounts.
-    // for (let counter = 0; counter < 12; counter++) {
-    for (let counter = 0; counter < 14; counter++) {
+    // for (let counter = 0; counter < 13; counter++) {
+    for (let counter = 0; counter < 12; counter++) {
       try {
         const tx = await program.methods
           .setDataNoZeroCopy("A".repeat(string_length))
@@ -80,7 +78,7 @@ describe("without_zero_copy", () => {
           })
           .signers([signer])
           .rpc(confirmOptions);
-          console.log("Add more string " + counter, tx);
+        console.log("Add more string " + counter, tx);
       } catch (e) {
         console.log("error occurred: ", e);
       }
@@ -91,7 +89,7 @@ describe("without_zero_copy", () => {
       for (let bytes of accountInfo.data) {
         if (bytes != 0) {
           counter++;
-        }          
+        }
       }
       console.log("Non zero bytes in buffer: " + counter);
     });
