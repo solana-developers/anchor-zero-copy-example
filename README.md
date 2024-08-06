@@ -16,7 +16,7 @@ Maybe you also need to install Anchor or Rust: https://www.anchor-lang.com/docs/
 ## Explanation of Solana Memory and Zero Copy 
 
 The heap and stack memory in the Solana runtime are very limited. We have 4Kb to work with on the stack and 32Kb on the heap.
-The stack increased by 10Kb per loaded account. These limits are quickly reached when writing a program. 
+The stack increases by 10Kb per loaded account. These limits are quickly reached when writing a program. 
 By default in Anchor all account structs are being loaded will be on the stack. If you reach the stack limit you will an error similar to this: 
 
 ```js
