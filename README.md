@@ -38,33 +38,36 @@ If your account gets bigger it gets a bit more complicated. Solana does not allo
 Anchor does use a CPI to initialize all new accounts. So it calls the System Program internally to create a new account.
 You can allocate more memory to your account like this with an extra transaction: 
 
-```js
-Program: 
+Inside the program: 
 
-    #[derive(Accounts)]
-    #[instruction(len: u16)]
-    pub struct IncreaseAccoutSize<'info> {
-        #[account(mut, 
-            realloc = len as usize, 
-            realloc::zero = true, 
-            realloc::payer=signer)]
-        pub data_holder: Account<'info, DataHolderNoZeroCopy>,
-        #[account(mut)]
-        pub signer: Signer<'info>,
-        #[account(address = system_program::ID)]
-        pub system_program: Program<'info, System>,
-    }
+```rust
+#[derive(Accounts)]
+#[instruction(len: u16)]
+pub struct IncreaseAccoutSize<'info> {
+    #[account(mut, 
+        realloc = len as usize, 
+        realloc::zero = true, 
+        realloc::payer=signer)]
+    pub data_holder: Account<'info, DataHolderNoZeroCopy>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
+}
+```
 
-Ts: 
-    let txRealloc = await program.methods
-    .increaseAccountData(20480)
-    .accounts({
+In the frontend, using TypeScript: 
+
+```ts
+let txRealloc = await program.methods
+  .increaseAccountData(20480)
+  .accounts({
     signer: signer.publicKey,
     dataHolder: pdaNoZeroCopy,
-    systemProgram: anchor.web3.SystemProgram.programId
-    })
-    .signers([signer])
-    .rpc();
+    systemProgram: anchor.web3.SystemProgram.programId,
+  })
+  .signers([signer])
+  .rpc();
 ```
 
 You can then call this multiple times adding 10240 in each transaction. 
