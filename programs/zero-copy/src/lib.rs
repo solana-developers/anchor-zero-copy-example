@@ -48,7 +48,7 @@ pub mod zero_copy {
         Ok(())
     }
 
-    pub fn increase_account_data(_ctx: Context<IncreaseAccoutSize>, _len: u16) -> Result<()> {
+    pub fn increase_account_data(_ctx: Context<IncreaseAccountSize>, _len: u16) -> Result<()> {
         Ok(())
     }
 
@@ -134,7 +134,7 @@ pub struct SetDataNoZeroCopy<'info> {
 
 #[derive(Accounts)]
 #[instruction(len: u16)]
-pub struct IncreaseAccoutSize<'info> {
+pub struct IncreaseAccountSize<'info> {
     #[account(mut, 
         realloc = len as usize, 
         realloc::zero = true, 
